@@ -103,6 +103,14 @@ int main(void)
     check_bool  (&r, "div(INT_MAX, INT_MAX) ret", 1,   calc_div(INT_MAX, INT_MAX, &result));
     check_double(&r, "div(INT_MAX, INT_MAX) val", 1.0, result, 1e-9);
 
+    result = 0.0;
+    check_bool  (&r, "div(INT_MIN, INT_MIN) ret", 1,   calc_div(INT_MIN, INT_MIN, &result));
+    check_double(&r, "div(INT_MIN, INT_MIN) val", 1.0, result, 1e-9);
+
+    result = 0.0;
+    check_bool  (&r, "div(INT_MIN, 1) ret",  1,              calc_div(INT_MIN, 1, &result));
+    check_double(&r, "div(INT_MIN, 1) val", (double)INT_MIN, result, 1e-0);
+
     printf("\n=== テスト結果 ===\n");
     printf("合格: %d / 不合格: %d / 合計: %d\n", r.passed, r.failed, r.passed + r.failed);
 
