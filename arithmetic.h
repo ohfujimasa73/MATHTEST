@@ -1,0 +1,10 @@
+#ifndef ARITHMETIC_H
+#define ARITHMETIC_H
+
+int  calc_add(int a, int b);
+int  calc_sub(int a, int b);
+int  calc_mul(int a, int b);
+/* 戻り値: 1=成功, 0=ゼロ除算エラー。結果は result に格納 */
+int  calc_div(int a, int b, double *result);
+
+#endif /* ARITHMETIC_H */
