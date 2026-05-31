@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <math.h>
+#include <limits.h>
 #include "arithmetic.h"
 
 /* テスト結果を保持する構造体（グローバル変数を排除） */
@@ -78,6 +79,29 @@ int main(void)
     check_double(&r, "div( 0, 5) val", 0.0, result, 1e-9);
 
     check_bool(&r, "div( 5, 0) ret", 0, calc_div( 5, 0, &result)); /* ゼロ除算 */
+    check_bool(&r, "div( 5, 0, NULL) ret", 0, calc_div( 5, 0, NULL)); /* NULLポインタ */
+    check_bool(&r, "div( 5, 2, NULL) ret", 0, calc_div( 5, 2, NULL)); /* NULLポインタ(正常除数) */
+
+    result = 0.0;
+    check_bool  (&r, "div(-9, 3) ret",  1,    calc_div(-9, 3, &result));
+    check_double(&r, "div(-9, 3) val", -3.0,  result, 1e-9);
+
+    result = 0.0;
+    check_bool  (&r, "div(-7,-2) ret",  1,    calc_div(-7, -2, &result));
+    check_double(&r, "div(-7,-2) val",  3.5,  result, 1e-9);
+
+    printf("\n=== 境界値テスト ===\n");
+    check_int(&r, "add(INT_MAX, 0)",  INT_MAX, calc_add(INT_MAX,  0));
+    check_int(&r, "add(INT_MIN, 0)",  INT_MIN, calc_add(INT_MIN,  0));
+    check_int(&r, "sub(INT_MIN, 0)",  INT_MIN, calc_sub(INT_MIN,  0));
+    check_int(&r, "sub(INT_MAX, 0)",  INT_MAX, calc_sub(INT_MAX,  0));
+    check_int(&r, "mul(INT_MAX, 1)",  INT_MAX, calc_mul(INT_MAX,  1));
+    check_int(&r, "mul(INT_MIN, 1)",  INT_MIN, calc_mul(INT_MIN,  1));
+    check_int(&r, "mul( 0, INT_MAX)",       0, calc_mul(0, INT_MAX));
+
+    result = 0.0;
+    check_bool  (&r, "div(INT_MAX, INT_MAX) ret", 1,   calc_div(INT_MAX, INT_MAX, &result));
+    check_double(&r, "div(INT_MAX, INT_MAX) val", 1.0, result, 1e-9);
 
     printf("\n=== テスト結果 ===\n");
     printf("合格: %d / 不合格: %d / 合計: %d\n", r.passed, r.failed, r.passed + r.failed);
