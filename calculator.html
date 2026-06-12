@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>四則演算計算機</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: "Meiryo", "Yu Gothic UI", "Segoe UI", sans-serif;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #5a67d8 0%, #805ad5 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+
+  .card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 36px 32px 28px;
+    width: 420px;
+    box-shadow: 0 28px 56px rgba(0,0,0,0.30);
+  }
+
+  h1 {
+    text-align: center;
+    font-size: 21px;
+    color: #2d3748;
+    margin-bottom: 28px;
+    letter-spacing: 0.05em;
+  }
+
+  /* ディスプレイ */
+  .display {
+    background: #1a202c;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    min-height: 72px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+
+  .display-expr {
+    font-size: 13px;
+    color: #a0aec0;
+    min-height: 18px;
+    word-break: break-all;
+  }
+
+  .display-value {
+    font-size: 32px;
+    font-weight: bold;
+    color: #f7fafc;
+    word-break: break-all;
+    text-align: right;
+  }
+
+  .display-value.error {
+    font-size: 14px;
+    color: #fc8181;
+    font-weight: normal;
+  }
+
+  /* ボタングリッド */
+  .btn-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+
+  button {
+    border: none;
+    border-radius: 10px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 18px 0;
+    transition: filter 0.12s, transform 0.08s;
+    color: #2d3748;
+    box-shadow:
+        0 6px 0 #2e7d32,
+        0 8px 10px rgba(0,0,0,0.3);
+  }
+
+  button:active { 
+    transform: scale(0.94); 
+    transform: translateY(6px);
+
+    box-shadow:
+        0 0 0 #2e7d32,
+        0 2px 5px rgba(0,0,0,0.3);
+  }
+
+  /* 数字・小数点 */
+  .btn-num {
+    background: #edf2f7;
+  }
+  .btn-num:hover { filter: brightness(0.93); }
+
+  /* 演算子 */
+  .btn-op {
+    background: #ebfffe;
+    color: #5a67d8;
+  }
+  .btn-op:hover  { filter: brightness(0.93); }
+  .btn-op.active { background: #5a67d8; color: #fff; }
+
+  /* = */
+  .btn-eq {
+    background: linear-gradient(135deg, #5a67d8, #805ad5);
+    color: #fff;
+    grid-column: span 1;
+  }
+  .btn-eq:hover { filter: brightness(1.10); }
+
+  /* AC */
+  .btn-ac {
+    background: #f70404;
+    color: #c53030;
+  }
+  .btn-ac:hover { filter: brightness(0.93); }
+
+  /* +/- */
+  .btn-sign {
+    background: #e2e8f0;
+    color: #4a5568;
+    font-size: 16px;
+  }
+  .btn-sign:hover { filter: brightness(0.93); }
+
+  /* 0 幅2列 */
+  .btn-zero {
+    grid-column: span 2;
+    text-align: left;
+    padding-left: 26px;
+  }
+
+  .hint {
+    font-size: 11px;
+    color: #a0aec0;
+    text-align: center;
+    margin-top: 18px;
+    line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>🔢 四則演算計算機</h1>
+
+  <div class="display">
+    <div class="display-expr" id="expr"></div>
+    <div class="display-value" id="disp">0</div>
+  </div>
+
+  <div class="btn-grid">
+    <!-- 行1 -->
+    <button class="btn-ac"   onclick="pressAC()">AC</button>
+    <button class="btn-sign" onclick="pressSign()">+/−</button>
+    <button class="btn-num"  onclick="pressNum('%')">%</button>
+    <button class="btn-op"   id="op-div" onclick="pressOp('÷')">÷</button>
+    <!-- 行2 -->
+    <button class="btn-num" onclick="pressNum('7')">7</button>
+    <button class="btn-num" onclick="pressNum('8')">8</button>
+    <button class="btn-num" onclick="pressNum('9')">9</button>
+    <button class="btn-op"  id="op-mul" onclick="pressOp('×')">×</button>
+    <!-- 行3 -->
+    <button class="btn-num" onclick="pressNum('4')">4</button>
+    <button class="btn-num" onclick="pressNum('5')">5</button>
+    <button class="btn-num" onclick="pressNum('6')">6</button>
+    <button class="btn-op"  id="op-sub" onclick="pressOp('−')">−</button>
+    <!-- 行4 -->
+    <button class="btn-num" onclick="pressNum('1')">1</button>
+    <button class="btn-num" onclick="pressNum('2')">2</button>
+    <button class="btn-num" onclick="pressNum('3')">3</button>
+    <button class="btn-op"  id="op-add" onclick="pressOp('＋')">＋</button>
+    <!-- 行5 -->
+    <button class="btn-num btn-zero" onclick="pressNum('0')">0</button>
+    <button class="btn-num"          onclick="pressNum('.')">.</button>
+    <button class="btn-eq"           onclick="pressEqual()">=</button>
+  </div>
+
+  <p class="hint">
+    arithmetic.c の演算ロジック (加算・減算・乗算・除算) を JavaScript で再現<br>
+    ゼロ除算はエラー表示
+  </p>
+</div>
+
+<script>
+  /* --- arithmetic.c の関数をJS で再現 --- */
+  function calc_add(a, b) { return a + b; }
+  function calc_sub(a, b) { return a - b; }
+  function calc_mul(a, b) { return a * b; }
+  function calc_div(a, b) {
+    if (b === 0) return null; /* エラー: ゼロ除算 */
+    return a / b;
+  }
+
+  /* --- 電卓ステート --- */
+  var current   = "0";   /* 現在入力中の数値文字列 */
+  var operand   = null;  /* 1つ目の数値 */
+  var operator  = null;  /* 演算子 ÷ × − ＋ */
+  var justCalc  = false; /* = 直後フラグ */
+
+  /* --- 表示更新 --- */
+  function setDisp(val, isError) {
+    var el = document.getElementById("disp");
+    el.textContent = val;
+    el.className = "display-value" + (isError ? " error" : "");
+  }
+
+  function setExpr(val) {
+    document.getElementById("expr").textContent = val;
+  }
+
+  function clearOpHighlight() {
+    ["op-add","op-sub","op-mul","op-div"].forEach(function(id){
+      document.getElementById(id).classList.remove("active");
+    });
+  }
+
+  var opIdMap = { "＋":"op-add", "−":"op-sub", "×":"op-mul", "÷":"op-div" };
+
+  /* --- ボタン処理 --- */
+  function pressNum(ch) {
+    if (ch === '%') {
+      var v = parseFloat(current);
+      if (!isNaN(v)) {
+        current = String(v / 100);
+        setDisp(format(current));
+      }
+      return;
+    }
+
+    if (justCalc) { current = "0"; justCalc = false; }
+
+    if (ch === '.') {
+      if (current.indexOf('.') === -1) current += '.';
+    } else {
+      current = (current === "0") ? ch : current + ch;
+    }
+    setDisp(format(current));
+  }
+
+  function pressSign() {
+    var v = parseFloat(current);
+    if (!isNaN(v) && v !== 0) {
+      current = String(-v);
+      setDisp(format(current));
+    }
+  }
+
+  function pressOp(op) {
+    if (operator !== null && !justCalc && current !== "0") {
+      /* 連続演算: 先に計算 */
+      pressEqual(true);
+      if (operator === null) { /* エラーだった場合は中断 */
+        return;
+      }
+    }
+    operand  = parseFloat(current);
+    operator = op;
+    justCalc = true;
+
+    clearOpHighlight();
+    var btnId = opIdMap[op];
+    if (btnId) document.getElementById(btnId).classList.add("active");
+
+    setExpr(format(String(operand)) + " " + op);
+  }
+
+  function pressEqual(fromOp) {
+    if (operator === null || operand === null) return;
+
+    var a   = operand;
+    var b   = parseFloat(current);
+    var sym = operator;
+    var res;
+
+    if      (sym === "＋") res = calc_add(a, b);
+    else if (sym === "−") res = calc_sub(a, b);
+    else if (sym === "×") res = calc_mul(a, b);
+    else if (sym === "÷") res = calc_div(a, b);
+
+    clearOpHighlight();
+
+    if (res === null) {
+      setExpr(format(String(a)) + " ÷ " + format(String(b)) + " =");
+      setDisp("エラー: 0で割ることはできません", true);
+      operator = null;
+      operand  = null;
+      current  = "0";
+      return;
+    }
+
+    var resStr = String(res);
+    /* 浮動小数点の誤差対策: 必要なら丸める */
+    if (resStr.indexOf('.') !== -1 && resStr.length > 15) {
+      resStr = String(parseFloat(res.toPrecision(12)));
+    }
+
+    // = 直後でない場合は結果を表示して演算子はクリア、連続演算の場合は結果を次の演算の左オペランドにして演算子は維持
+    if (!fromOp) {
+      setExpr(format(String(a)) + " " + sym + " " + format(String(b)) + " =");
+      setDisp(format(resStr));
+      operator = null;
+    } else {
+      setExpr(format(String(resStr)) + " " + sym);
+      setDisp(format(resStr));
+      operator = sym;
+    }
+    justCalc = true;
+    operand  = null;
+    current  = resStr;
+  }
+
+  function pressAC() {
+    current  = "0";
+    operand  = null;
+    operator = null;
+    justCalc = false;
+    clearOpHighlight();
+    setDisp("0");
+    setExpr("");
+  }
+
+  /* 数値文字列を読みやすくフォーマット */
+  function format(s) {
+    var parts = s.split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return parts.join('.');
+  }
+
+  /* キーボード対応 */
+  document.addEventListener("keydown", function(e) {
+    var k = e.key;
+    if (k >= "0" && k <= "9") { pressNum(k); return; }
+    if (k === ".")  { pressNum('.'); return; }
+    if (k === "+")  { pressOp('＋'); return; }
+    if (k === "-")  { pressOp('−'); return; }
+    if (k === "*")  { pressOp('×'); return; }
+    if (k === "/")  { e.preventDefault(); pressOp('÷'); return; }
+    if (k === "Enter" || k === "=") { pressEqual(false); return; }
+    if (k === "Escape") { pressAC(); return; }
+    if (k === "Backspace") {
+      if (current.length > 1) current = current.slice(0, -1);
+      else current = "0";
+      setDisp(format(current));
+    }
+  });
+</script>
+</body>
+</html>
